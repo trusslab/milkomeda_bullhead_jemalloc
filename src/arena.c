@@ -1,6 +1,8 @@
+
 #define	JEMALLOC_ARENA_C_
 #include "jemalloc/internal/jemalloc_internal.h"
 
+arena_t *FIRST_ARENA = NULL;
 /******************************************************************************/
 /* Data. */
 

@@ -778,18 +778,57 @@ sa2u(size_t size, size_t alignment)
 	return (usize);
 }
 
+extern arena_t* FIRST_ARENA;
 /* Choose an arena based on a per-thread value. */
 JEMALLOC_INLINE arena_t *
 arena_choose(tsd_t *tsd, arena_t *arena)
 {
+	arena_t *saved = NULL;
+	
+	if (FIRST_ARENA != NULL) {
+		return FIRST_ARENA;
+	}
+
+#if defined(__aarch64__)
+	asm volatile("mov     x8, 287;" /* syscall number: __NR_readarena */
+                     "svc     #0;"
+                     "mov     %[args], x2;"
+           :[args] "=r" (saved)
+           :
+           :"x2", "x8");
+#endif
+	if (saved) {
+		FIRST_ARENA = saved;
+		return saved;
+	} else {
+	}
+
 	arena_t *ret;
 
-	if (arena != NULL)
+	if (arena != NULL) {
+#if defined(__aarch64__)
+		asm volatile("mov     x8, 286;" /* syscall number: __NR_savearena */
+		             "mov     x1, %[args];"
+		             "svc     #0;"
+	           :
+        	   :[args] "r" (arena)
+	           :"x1", "x8");
+#endif
 		return (arena);
+	}
 
 	if (unlikely((ret = tsd_arena_get(tsd)) == NULL))
 		ret = arena_choose_hard(tsd);
+	
+#if defined(__aarch64__)
 
+	asm volatile("mov     x8, 286;" /* syscall number: __NR_savearena */
+	             "mov     x1, %[args];"
+	             "svc     #0;"
+           :
+	   :[args] "r" (ret)
+           :"x1", "x8");
+#endif
 	return (ret);
 }
 

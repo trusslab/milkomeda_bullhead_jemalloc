@@ -54,7 +54,7 @@ jemalloc_common_cflags += \
 else
 # Only enable the tcache on non-svelte configurations, to save PSS.
 jemalloc_common_cflags += \
-	-DANDROID_MAX_ARENAS=2 \
+	-DANDROID_MAX_ARENAS=1 \
 	-DJEMALLOC_TCACHE \
 	-DANDROID_TCACHE_NSLOTS_SMALL_MAX=8 \
 	-DANDROID_TCACHE_NSLOTS_LARGE=16 \
